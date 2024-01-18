@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .file-container {
+      margin: 20px;
+    }
+    .file {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+    }
+    .view-button {
+      background-color: #4caf50;
+      color: white;
+      padding: 8px 16px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Recent Print Requests</h1>
+  <div id="file-container" class="file-container"></div>
+  <script>
+    async function fetchFiles() {
+      const response = await fetch('/files');
+      const files = await response.json();
+
+      const fileContainer = document.getElementById('file-container');
+      fileContainer.innerHTML = '';
+
+      files.forEach((file) => {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'file';
+
+        const fileInfo = document.createElement('div');
+        fileInfo.innerHTML = `
+          <p><strong>File Name:</strong> ${file.filename}</p>
+          <p><strong>Uploader:</strong> ${file.metadata.uploader}</p>
+          <p><strong>Upload Date:</strong> ${new Date(file.metadata.uploadDate).toLocaleString()}</p>
+        `;
+        fileDiv.appendChild(fileInfo);
+
+        const viewButton = document.createElement('button');
+        viewButton.className = 'view-button';
+        viewButton.textContent = 'View';
+        viewButton.addEventListener('click', () => {
+          // Add logic to view the PDF file (open in a new window, download, etc.)
+          window.open(`/view/${file._id}`, '_blank');
+        });
+        fileDiv.appendChild(viewButton);
+
+        fileContainer.appendChild(fileDiv);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchFiles();
+    });
+  </script>
+</body>
+</html>

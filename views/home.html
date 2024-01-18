@@ -1,0 +1,105 @@
+<!-- home.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Zerox</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Zerox</h1>
+
+    <form id="uploadForm" action="/upload" enctype="multipart/form-data" method="POST">
+        Select PDF: <input type="file" name="myFile">
+        <input type="button" value="Upload" onclick="uploadFile()">
+    </form>
+
+    <form action="/pay" class="info" method="POST">
+        <p id="pages"></p>
+        <p id="amt" ></p>
+        <button id="pay" style="display: none;">Confirm and Pay</button>
+    </form>
+
+
+    <script>
+        function uploadFile() {
+            // Fetch data from the server
+            fetch('/upload', {
+                method: 'POST',
+                body: new FormData(document.getElementById('uploadForm'))
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('pages').innerText = `Number of Pages: ${data.numpages}`;
+                document.getElementById('amt').innerText = `Amount to Pay: ${data.amount} Rs`;
+                document.getElementById('pay').style.display = '';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error counting pages.');
+            });
+        };
+
+    </script>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+$(document).ready(function(){
+	$('.info').submit(function(e){
+		e.preventDefault();
+		
+		var formData = $(this).serialize();
+
+		$.ajax({
+			url:"/pay",
+			type:"POST",
+			data: formData,
+			success:function(res){
+				if(res.success){
+					var options = {
+						"key": ""+res.key_id+"",
+						"amount": ""+res.amount+"",
+						"currency": "INR",
+						// "name": ""+res.product_name+"",
+						// "description": ""+res.description+"",
+						"image": "https://dummyimage.com/600x400/000/fff",
+						"order_id": ""+res.order_id+"",
+						"handler": function (response){
+							alert("Payment Succeeded");
+							
+						
+							// window.open("/","_self")
+						},
+						"prefill": {
+							"contact":""+res.contact+"",
+							"name": ""+res.name+"",
+							"email": ""+res.email+""
+						},
+						// "notes" : {
+						// 	"description":""+res.description+""
+						// },
+						"theme": {
+							"color": "#2300a3"
+						}
+					};
+					var razorpayObject = new Razorpay(options);
+					razorpayObject.on('payment.failed', function (response){
+							alert("Payment Failed");
+					});
+					razorpayObject.open();
+				}
+				else{
+					alert(res.msg);
+				}
+			}
+		})
+
+	});
+});
+
+</script>
+
+</body>
+</html>
